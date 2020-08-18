@@ -34,9 +34,9 @@ esphome:
     priority: -100
     then:
     # absolute hacks, otherwise LED ring won't work with addressable_set
-    - script.execute: setRingOn 
+    - script.execute: set_ring_on 
     - delay: 3s
-    - script.execute: setRingOff
+    - script.execute: set_ring_off
 
 captive_portal:
 logger:
@@ -45,13 +45,13 @@ ota:
 
 globals:
   # Colors used in different states
-  - id: colorManual
+  - id: color_manual
     type: int[3]
     initial_value: "{230, 204, 128}"
-  - id: colorAuto
+  - id: color_auto
     type: int[3]
     initial_value: "{0, 0, 204}"
-  - id: isAutomatic
+  - id: is_automatic
     type: bool
     restore_value: yes
     initial_value: "false"
@@ -62,19 +62,19 @@ light:
     pin: GPIO13
     num_leds: $total_leds
     rgb_order: GRB
-    name: "Ring"
+    name: "LED Ring"
     id: ring
     internal: true
     
 sensor:
   - platform: homeassistant
     name: "Auto brightness"
-    id: autoBrightness
+    id: auto_brightness
     entity_id: input_number.brightness
     internal: true
   - platform: homeassistant
     name: "Auto kelvin"
-    id: autoKelvin
+    id: auto_kelvin
     entity_id: input_number.kelvin
     internal: true
 
@@ -95,15 +95,15 @@ sensor:
       - heartbeat: $dimming_interval s
       - delta: 1 # This is used to prevent sending heartbeats when there are no changes
     on_value:
-        - script.execute: setMQTTLights
-        - script.execute: setAutomations
+        - script.execute: set_mqtt_lights
+        - script.execute: set_automations
     on_raw_value:
         - globals.set:
-            id: isAutomatic
+            id: is_automatic
             value: "false"
-        - script.execute: setAuto
-        - script.execute: setActiveRing
-        - script.execute: setTimedOutRing
+        - script.execute: set_auto
+        - script.execute: set_active_ring
+        - script.execute: set_timed_out_ring
 
 binary_sensor:
   - platform: gpio
@@ -122,23 +122,23 @@ binary_sensor:
       then:
         - sensor.rotary_encoder.set_value:
             id: rotary
-            value: !lambda return id(autoBrightness).state / (255 / $ring_leds);
+            value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
 
         - globals.set:
-            id: isAutomatic
+            id: is_automatic
             value: "true"
-        - script.execute: setAutomations
-        - script.execute: setAuto
-        - script.execute: setActiveRing
+        - script.execute: set_automations
+        - script.execute: set_auto
+        - script.execute: set_active_ring
 
 script:
-  - id: setActiveRing
+  - id: set_active_ring
     then:
       - light.addressable_set:
           id: ring
-          red: !lambda "return id(isAutomatic) ? id(colorAuto)[0] : id(colorManual)[0];"
-          green: !lambda "return id(isAutomatic) ? id(colorAuto)[1] : id(colorManual)[1];"
-          blue: !lambda "return id(isAutomatic) ? id(colorAuto)[2] : id(colorManual)[2];"
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : id(color_manual)[0];"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : id(color_manual)[1];"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : id(color_manual)[2];"
           range_from: 1
           range_to: !lambda return id(rotary).raw_state;
       - light.addressable_set:
@@ -148,35 +148,35 @@ script:
           blue: 0
           range_to: $ring_leds
           range_from: !lambda return id(rotary).raw_state + 1;
-  - id: setTimedOutRing
+  - id: set_timed_out_ring
     then:
-      - script.stop: setTimedOutRing
+      - script.stop: set_timed_out_ring
       - delay: $timeout_leds
-      - script.execute: setRingOff
+      - script.execute: set_ring_off
       - light.addressable_set:
           id: ring
-          red: !lambda "return id(isAutomatic) ? id(colorAuto)[0] : id(colorManual)[0];"
-          green: !lambda "return id(isAutomatic) ? id(colorAuto)[1] : id(colorManual)[1];"
-          blue: !lambda "return id(isAutomatic) ? id(colorAuto)[2] : id(colorManual)[2];"
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : id(color_manual)[0];"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : id(color_manual)[1];"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : id(color_manual)[2];"
           range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state;"
           range_to: !lambda return id(rotary).raw_state;
-  - id: setAuto
+  - id: set_auto
     then:
       - light.addressable_set:
           id: ring
-          red: !lambda "return id(isAutomatic) ? id(colorAuto)[0] : 0;"
-          green: !lambda "return id(isAutomatic) ? id(colorAuto)[1] : 0;"
-          blue: !lambda "return id(isAutomatic) ? id(colorAuto)[2] : 0;"
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : 0;"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : 0;"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : 0;"
           range_from: 0
           range_to: 0
       - light.addressable_set:
           id: ring
-          red: !lambda "return id(isAutomatic) ? id(colorAuto)[0] : 0;"
-          green: !lambda "return id(isAutomatic) ? id(colorAuto)[1] : 0;"
-          blue: !lambda "return id(isAutomatic) ? id(colorAuto)[2] : 0;"
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : 0;"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : 0;"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : 0;"
           range_from: 22
           range_to: 24
-  - id: setRingOff
+  - id: set_ring_off
     then:
       - light.addressable_set:
           id: ring
@@ -185,7 +185,7 @@ script:
           blue: 0
           range_from: 0
           range_to: $total_leds
-  - id: setRingOn
+  - id: set_ring_on
     then:
       - light.turn_on:
           id: ring
@@ -193,13 +193,13 @@ script:
           green: 100%
           blue: 0
           brightness: $brightness_leds
-  - id: setAutomations
+  - id: set_automations
     then:
       - homeassistant.service:
-          service: !lambda "return id(isAutomatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
           data: 
             entity_id: automation.entered_sitting_area
-  - id: setMQTTLights
+  - id: set_mqtt_lights
     then:
       - mqtt.publish_json:
           topic: !lambda return "$mqtt_light_topic";
