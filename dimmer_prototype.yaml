@@ -13,18 +13,23 @@ mqtt:
 substitutions:
   # Must set these
   device_name: "dimmer_prototype"
+
+  # Use the native API or MQTT, MQTT + Zigbee2MQTT is superior by 10 fold
+  use_native_api: "false"
+  dimming_interval: "0.25" # in seconds, native api no lower than 1, non native (mqtt) can go as low as 0.25
   mqtt_light_topic: "zigbee2mqtt/living_room_without_projector/set"
+  native_light_id: "light.living_room"
 
   # Play around with these
   default_brightness: "10" # range between 0 - 21 inclusive
   brightness_leds: "40%" # value too low can cause inconsistent color reproduction
   timeout_leds: "5s" # in seconds, time for only one led to show after a change
-  dimming_interval: "0.25" # in seconds, lower than this value can overload the zigbee network
 
   # Best not touch these
   total_leds: "24"
   ring_leds: "21"
   auto_leds: "3"
+  
 
 esphome:
   name: $device_name
@@ -93,9 +98,9 @@ sensor:
     filters:
       - lambda: return x * (255 / $ring_leds);
       - heartbeat: $dimming_interval s
-      - delta: 1 # This is used to prevent sending heartbeats when there are no changes
+      - delta: 1 # Prevent sending heartbeats when there are no changes
     on_value:
-        - script.execute: set_mqtt_lights
+        - script.execute: set_lights
         - script.execute: set_automations
     on_raw_value:
         - globals.set:
@@ -199,11 +204,28 @@ script:
           service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
           data: 
             entity_id: automation.entered_sitting_area
-  - id: set_mqtt_lights
+  - id: set_lights
     then:
-      - mqtt.publish_json:
-          topic: !lambda return "$mqtt_light_topic";
-          payload: |-
-            root["brightness"] = id(rotary).state;
-            root["transition"] = $dimming_interval;
+      if:
+        condition:
+          lambda: "return $use_native_api;"
+        then:
+          - homeassistant.service:
+              service: light.turn_on
+              data_template:
+                entity_id: light.living_room
+                brightness: "{{ rotary | int }}"
+                transition: "$dimming_interval"
+              variables:
+                rotary: |-
+                  return id(rotary).state;
+        else:
+          - mqtt.publish_json:
+              topic: !lambda return "$mqtt_light_topic";
+              payload: |-
+                root["brightness"] = id(rotary).state;
+                root["transition"] = $dimming_interval;
+
+
+
 
