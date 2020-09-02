@@ -60,6 +60,10 @@ globals:
     type: bool
     restore_value: yes
     initial_value: "false"
+  - id: control_brightness
+    type: bool
+    restore_value: yes
+    initial_value: "true"
 
 status_led:
   pin:
@@ -78,15 +82,21 @@ light:
     
 sensor:
   - platform: homeassistant
-    name: "Auto brightness"
-    id: auto_brightness
-    entity_id: input_number.brightness
-    internal: true
-  - platform: homeassistant
     name: "Auto kelvin"
     id: auto_kelvin
     entity_id: input_number.kelvin
     internal: true
+  - platform: homeassistant
+    name: "Auto brightness"
+    id: auto_brightness
+    entity_id: input_number.brightness
+    internal: true
+    on_value:
+      if:
+        condition:
+          lambda: 'return id(is_automatic);'
+        then:
+          - script.execute: set_auto_brightness_on_ring
 
   - platform: rotary_encoder
     internal: true
@@ -105,15 +115,19 @@ sensor:
       - heartbeat: $dimming_interval s
       - delta: 1 # Prevent sending heartbeats when there are no changes
     on_value:
-        - script.execute: set_lights
-        - script.execute: set_automations
+      if:
+        condition:
+          lambda: 'return id(control_brightness);'
+        then:
+          - script.execute: set_lights
+          - script.execute: set_automations
     on_raw_value:
-        - globals.set:
-            id: is_automatic
-            value: "false"
-        - script.execute: set_auto
-        - script.execute: set_active_ring
-        - script.execute: set_timed_out_ring
+      - globals.set:
+          id: is_automatic
+          value: "false"
+      - script.execute: set_auto
+      - script.execute: set_active_ring
+      - script.execute: set_timed_out_ring
 
 binary_sensor:
   - platform: gpio
@@ -130,16 +144,27 @@ binary_sensor:
     - min_length: 350ms
       max_length: 100000ms
       then:
+
+        # Update the rotary encoder state to reflect auto brightness, without sending this brightness
+        - globals.set:
+            id: control_brightness
+            value: "false"
         - sensor.rotary_encoder.set_value:
             id: rotary
-            value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
+            value: !lambda return (id(auto_brightness).state / (255 / $ring_leds));
+        - globals.set:
+            id: control_brightness
+            value: "true"
 
+        # Update state to automatic, set lights, automations and ring accordingly 
         - globals.set:
             id: is_automatic
             value: "true"
+        - script.execute: set_lights    
         - script.execute: set_automations
         - script.execute: set_auto
         - script.execute: set_active_ring
+
 
 script:
   - id: set_active_ring
@@ -217,7 +242,6 @@ script:
           service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
           data: 
             entity_id: automation.all_off_when_sleeping
-
   - id: set_lights
     then:
       - if:
@@ -243,5 +267,30 @@ script:
       - logger.log:
             format: "Lights controlled: %f "
             args: [ 'id(rotary).state' ]
+  - id: set_auto_brightness_on_ring
+    then:
+      # Update the rotary encoder state to reflect auto brightness, without sending this brightness
+      - globals.set:
+          id: control_brightness
+          value: "false"
+      - sensor.rotary_encoder.set_value:
+          id: rotary
+          value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
+
+      # Update state to automatic, set ring accordingly 
+      - globals.set:
+          id: is_automatic
+          value: "true"
+      - script.execute: set_auto
+      - script.execute: set_active_ring
+
+      # Enabling this variable immediately will cause it to run before the rotary encoder brightness is set.
+      # In turn this means the light is controlled immediately, which is what we specifically don't want.
+      # This hack works...
+      - delay: 1s
+      - globals.set:
+          id: control_brightness
+          value: "true"
+
 
 
