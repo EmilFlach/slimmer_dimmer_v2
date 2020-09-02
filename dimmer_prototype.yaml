@@ -17,7 +17,7 @@ substitutions:
   # Use the native API or MQTT, MQTT + Zigbee2MQTT is superior by 10 fold
   use_native_api: "false"
   dimming_interval: "0.25" # in seconds, native api no lower than 1, non native (mqtt) can go as low as 0.25
-  mqtt_light_topic: "zigbee2mqtt/living_room_without_projector/set"
+  mqtt_light_topic: "zigbee2mqtt/living_room/set"
   native_light_id: "light.living_room"
 
   # Play around with these
@@ -60,6 +60,11 @@ globals:
     type: bool
     restore_value: yes
     initial_value: "false"
+
+status_led:
+  pin:
+    number: GPIO02
+    inverted: true # Normally status LED is off, inverting it gives more feedback during debugging
 
 light:
   - platform: fastled_clockless
@@ -204,28 +209,39 @@ script:
           service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
           data: 
             entity_id: automation.entered_sitting_area
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.entered_room
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.all_off_when_sleeping
+
   - id: set_lights
     then:
-      if:
-        condition:
-          lambda: "return $use_native_api;"
-        then:
-          - homeassistant.service:
-              service: light.turn_on
-              data_template:
-                entity_id: light.living_room
-                brightness: "{{ rotary | int }}"
-                transition: "$dimming_interval"
-              variables:
-                rotary: |-
-                  return id(rotary).state;
-        else:
-          - mqtt.publish_json:
-              topic: !lambda return "$mqtt_light_topic";
-              payload: |-
-                root["brightness"] = id(rotary).state;
-                root["transition"] = $dimming_interval;
+      - if:
+          condition:
+            lambda: "return $use_native_api;"
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data_template:
+                  entity_id: light.living_room
+                  brightness: "{{ rotary | int }}"
+                  transition: "$dimming_interval"
+                variables:
+                  rotary: |-
+                    return id(rotary).state;
+          else:
+            - mqtt.publish_json:
+                topic: !lambda return "$mqtt_light_topic";
+                payload: |-
+                  root["brightness"] = id(rotary).state;
+                  root["transition"] = $dimming_interval;
 
-
+      - logger.log:
+            format: "Lights controlled: %f "
+            args: [ 'id(rotary).state' ]
 
 
