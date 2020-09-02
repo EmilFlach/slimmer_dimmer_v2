@@ -12,7 +12,7 @@ input_number:
     step: 1
 
 
-automations:
+automation:
     # These automations control the input_number based on sun/time/alarm events
     - id: '153823423423'
     alias: Brightness before sunset
