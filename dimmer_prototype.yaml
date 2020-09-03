@@ -276,13 +276,19 @@ script:
       - sensor.rotary_encoder.set_value:
           id: rotary
           value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
+      - script.execute: set_ring_off
 
       # Update state to automatic, set ring accordingly 
       - globals.set:
           id: is_automatic
           value: "true"
-      - script.execute: set_auto
-      - script.execute: set_active_ring
+      - light.addressable_set:
+          id: ring
+          red: !lambda "return id(is_automatic) ? id(color_auto)[0] : id(color_manual)[0];"
+          green: !lambda "return id(is_automatic) ? id(color_auto)[1] : id(color_manual)[1];"
+          blue: !lambda "return id(is_automatic) ? id(color_auto)[2] : id(color_manual)[2];"
+          range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state;"
+          range_to: !lambda return id(rotary).raw_state;
 
       # Enabling this variable immediately will cause it to run before the rotary encoder brightness is set.
       # In turn this means the light is controlled immediately, which is what we specifically don't want.
