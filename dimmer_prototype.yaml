@@ -106,12 +106,8 @@ sensor:
     internal: true
     id: rotary
     name: "Rotary Encoder"
-    pin_a:
-      number: GPIO14
-      mode: INPUT_PULLUP
-    pin_b:
-      number: GPIO12
-      mode: INPUT_PULLUP
+    pin_a: GPIO14
+    pin_b: GPIO12
     min_value: 0
     max_value: $ring_leds
     filters:
@@ -243,6 +239,7 @@ script:
           blue: !lambda "return id(is_automatic) ? id(color_automatic)[2] : 0;"
           range_from: 22
           range_to: 24
+
   # Helpers that handle communication with lights and home assistant
   - id: send_automations
     then:
