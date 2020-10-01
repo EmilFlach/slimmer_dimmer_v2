@@ -1,0 +1,67 @@
+sensor:
+  - platform: homeassistant
+    name: "Auto kelvin"
+    id: auto_kelvin
+    entity_id: $auto_kelvin_id
+    internal: true
+  - platform: homeassistant
+    name: "Auto brightness"
+    id: auto_brightness
+    entity_id: $auto_brightness_id
+    internal: true
+    on_value:
+      - script.execute: received_auto_brightness_update
+
+script:
+  # Helpers that handle communication with lights and home assistant
+  - id: send_automations
+    then:
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.entered_sitting_area
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.entered_room
+      - homeassistant.service:
+          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
+          data: 
+            entity_id: automation.all_off_when_sleeping
+  - id: send_lights
+    then:
+      - if:
+          condition:
+            lambda: "return $use_native_api;"
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data_template:
+                  entity_id: light.living_room
+                  brightness: "{{ rotary | int }}"
+                  transition: "$dimming_interval"
+                variables:
+                  rotary: |-
+                    return id(rotary).state;
+          else:
+            - mqtt.publish_json:
+                topic: !lambda return "$mqtt_light_topic";
+                payload: |-
+                  root["brightness"] = id(rotary).state;
+                  root["transition"] = $dimming_interval;
+
+      - logger.log:
+            format: "Lights controlled: %f "
+            args: [ 'id(rotary).state' ]
+  - id: received_auto_brightness_update
+    then:
+      if:
+        condition:
+          lambda: 'return id(is_automatic);'
+        then:
+          - lambda: "id(synchronize_encoder) = true;"
+          - sensor.rotary_encoder.set_value:
+              id: rotary
+              value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
+          - delay: $dimming_interval s # Because of the debouncing we need to wait with setting this flag false
+          - lambda: "id(synchronize_encoder) = false;"

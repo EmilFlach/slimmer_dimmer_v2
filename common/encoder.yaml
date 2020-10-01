@@ -1,0 +1,42 @@
+sensor:
+  - platform: rotary_encoder
+    internal: true
+    id: rotary
+    name: "Rotary Encoder"
+    pin_a: GPIO14
+    pin_b: GPIO12
+    min_value: 0
+    max_value: $ring_leds
+    filters:
+      - lambda: return x * (255 / $ring_leds);
+      - heartbeat: $dimming_interval s
+      - delta: 1 # Prevent sending heartbeats when there are no changes
+    on_value:
+      - script.execute: handle_encoder_value
+    on_raw_value:
+      - script.execute: handle_encoder_raw_value
+
+
+script:
+  - id: handle_encoder_raw_value
+    then:
+      # if we are not syncronizing the encoder with the auto brightness, go to manual mode
+      - if:
+          condition:
+            lambda: 'return !id(synchronize_encoder);'
+          then:
+            - script.execute: set_manual
+      - script.execute: set_auto
+      - script.execute: set_active_ring
+      - script.execute: set_timed_out_ring
+      
+  - id: handle_encoder_value
+    then:
+      # only set the lights and automations when we are not syncronizing the encoder with the auto brightness
+      if:
+        condition:
+          lambda: 'return !id(synchronize_encoder);'
+        then:
+          - script.execute: send_lights
+          - script.execute: send_automations
+
