@@ -15,19 +15,28 @@ sensor:
 script:
   # Helpers that handle communication with lights and home assistant
   - id: send_automations
+    mode: restart
     then:
-      - homeassistant.service:
-          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
-          data: 
-            entity_id: automation.entered_sitting_area
-      - homeassistant.service:
-          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
-          data: 
-            entity_id: automation.entered_room
-      - homeassistant.service:
-          service: !lambda "return id(is_automatic) ? \"automation.turn_on\" : \"automation.turn_off\";"
-          data: 
-            entity_id: automation.all_off_when_sleeping
+      # Together with the mode: restart, this delay debounces the script
+      - delay: 3s
+      # This implementation might break when updating the esphome project
+      # The API might not be backwards compatible
+      - lambda: |-
+          // By passing the name of the script to this new Automation, it will be added to the event loop
+          Automation<> *my_send_automations = new Automation<>(send_automations);
+          
+          // The list is inserted with a substitution, beautiful hack
+          const char *automations[${automation_count}] = ${automations};
+
+          for (int i = 0; i < ${automation_count}; i++) {
+            api::HomeAssistantServiceCallAction<> *ha = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
+            ha->set_service([=]() {
+                return is_automatic->value() ? "automation.turn_on" : "automation.turn_off";
+            });
+            ha->add_data("entity_id", automations[i]);
+            my_send_automations->add_actions({ha});
+          }
+
   - id: send_lights
     then:
       - if:

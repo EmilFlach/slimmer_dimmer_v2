@@ -12,9 +12,22 @@ substitutions:
   dimming_interval: "0.25" # in seconds, native api no lower than 1, non native (mqtt) can go as low as 0.25
 
   # Play around with these
-  default_brightness: "10" # range between 0 - 21 inclusive
+  default_brightness: "180" # range between 0 - 255
   brightness_leds: "40%" # value too low can cause inconsistent color reproduction
   timeout_leds: "5s" # in seconds, timeout for the led ring to show only 1 led
+
+  automation_count: "9"
+  automations: "{
+      \"automation.entered_living_room\",
+      \"automation.entered_dining_room\",
+      \"automation.left_dining_room_2\",
+      \"automation.left_living_room\",
+      \"automation.disable_projector_light_when_casting\",
+      \"automation.enable_projector_light_when_not_casting\",
+      \"automation.opened_living_room_window\",
+      \"automation.closed_living_room_window\",
+      \"automation.all_off_when_sleeping\"
+    }"
 
 globals:
   # Colors used in different states
