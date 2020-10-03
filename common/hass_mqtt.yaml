@@ -24,19 +24,18 @@ script:
       - lambda: |-
           // By passing the name of the script to this new Automation, it will be added to the event loop
           Automation<> *my_send_automations = new Automation<>(send_automations);
-          
-          // The list is inserted with a substitution, beautiful hack
-          const char *automations[${automation_count}] = ${automations};
 
-          for (int i = 0; i < ${automation_count}; i++) {
+          // The list is inserted with a substitution, beautiful hack
+          const char *automations[] = ${automations};
+
+          for(const auto &automation : automations) {
             api::HomeAssistantServiceCallAction<> *ha = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
             ha->set_service([=]() {
                 return is_automatic->value() ? "automation.turn_on" : "automation.turn_off";
             });
-            ha->add_data("entity_id", automations[i]);
+            ha->add_data("entity_id", automation);
             my_send_automations->add_actions({ha});
           }
-
   - id: send_lights
     then:
       - if:

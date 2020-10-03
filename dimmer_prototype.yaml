@@ -1,14 +1,14 @@
 substitutions:
 
-  # Set all of these
+  # Don't forget to set the secrets in the secrets.yaml file
+  # Configure all of these
   device_name: "dimmer_prototype"
   mqtt_light_topic: "zigbee2mqtt/living_room/set"
   auto_brightness_id: "input_number.brightness"
   auto_kelvin_id: "input_number.kelvin"
-
-  # Use the native API or MQTT, MQTT + Zigbee2MQTT is superior by 10 fold
-  use_native_api: "false"
-  native_light_id: "light.living_room"
+  
+  use_native_api: "false" # Use the native API or MQTT, MQTT + Zigbee2MQTT is superior by 10 fold
+  native_light_id: "light.living_room" # If using the native API, a home assistant entity_id must be set
   dimming_interval: "0.25" # in seconds, native api no lower than 1, non native (mqtt) can go as low as 0.25
 
   # Play around with these
@@ -16,21 +16,20 @@ substitutions:
   brightness_leds: "40%" # value too low can cause inconsistent color reproduction
   timeout_leds: "5s" # in seconds, timeout for the led ring to show only 1 led
 
-  automation_count: "9"
-  automations: "{
-      \"automation.entered_living_room\",
-      \"automation.entered_dining_room\",
-      \"automation.left_dining_room_2\",
-      \"automation.left_living_room\",
-      \"automation.disable_projector_light_when_casting\",
-      \"automation.enable_projector_light_when_not_casting\",
-      \"automation.opened_living_room_window\",
-      \"automation.closed_living_room_window\",
-      \"automation.all_off_when_sleeping\"
-    }"
+  automations: '{
+      "automation.entered_living_room",
+      "automation.entered_dining_room",
+      "automation.left_dining_room_2",
+      "automation.left_living_room",
+      "automation.disable_projector_light_when_casting",
+      "automation.enable_projector_light_when_not_casting",
+      "automation.opened_living_room_window",
+      "automation.closed_living_room_window",
+      "automation.all_off_when_sleeping"
+    }'
 
 globals:
-  # Colors used in different states
+  # Colors used in different states (RGB)
   - id: color_manual
     type: int[3]
     initial_value: "{230, 204, 128}"

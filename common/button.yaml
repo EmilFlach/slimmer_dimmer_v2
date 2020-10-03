@@ -13,7 +13,6 @@ binary_sensor:
       then:
         - script.execute: handle_long_button_press
 
-
 script:
   - id: handle_short_button_press
     then:
