@@ -13,14 +13,13 @@ sensor:
       - script.execute: received_auto_brightness_update
 
 script:
-  # Helpers that handle communication with lights and home assistant
   - id: send_automations
     mode: restart
     then:
       # Together with the mode: restart, this delay debounces the script
       - delay: 3s
-      # This implementation might break when updating the esphome project
-      # The API might not be backwards compatible
+
+      # Hack, implementation might break when the API changes
       - lambda: |-
           // By passing the name of the script to this new Automation, it will be added to the event loop
           Automation<> *my_send_automations = new Automation<>(send_automations);
@@ -36,6 +35,7 @@ script:
             ha->add_data("entity_id", automation);
             my_send_automations->add_actions({ha});
           }
+
   - id: send_lights
     then:
       - if:
@@ -58,9 +58,6 @@ script:
                   root["brightness"] = id(rotary).state;
                   root["transition"] = $dimming_interval;
 
-      - logger.log:
-            format: "Lights controlled: %f "
-            args: [ 'id(rotary).state' ]
   - id: received_auto_brightness_update
     then:
       if:
@@ -71,5 +68,5 @@ script:
           - sensor.rotary_encoder.set_value:
               id: rotary
               value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
-          - delay: $dimming_interval s # Because of the debouncing we need to wait with setting this flag false
+          - delay: $dimming_interval s # Hack, because of the encoder debounce we need to wait with setting this flag false
           - lambda: "id(synchronize_encoder) = false;"

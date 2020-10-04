@@ -1,4 +1,5 @@
 # Every room has their own input_number to reflect the light state of that room
+# These numbers are used on the dimmer to set/display the auto brightness
 input_number:
   brightness: #living_room_brightness
     initial: 0

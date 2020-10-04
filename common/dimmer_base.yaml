@@ -48,7 +48,7 @@ status_led:
 script:
   - id: init_dimmer
     then:
-      # absolute hacks, otherwise LED ring won't work with addressable_set
+      # Hack, otherwise LED ring won't work with addressable_set
       - script.execute: set_ring_on 
       - delay: 3s
       - script.execute: set_ring_off

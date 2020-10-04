@@ -16,6 +16,22 @@ light:
 
 script:
   # Scripts that handle the states of the LED ring during usage
+  - id: active_ring_helper
+    then:
+    - light.addressable_set:
+        id: ring
+        red: !lambda "return id(color_active)[0];"
+        green: !lambda "return id(color_active)[1];"
+        blue: !lambda "return id(color_active)[2];"
+        range_from: 1
+        range_to: !lambda return id(ring_position);
+    - light.addressable_set:
+        id: ring
+        red: 0
+        green: 0
+        blue: 0
+        range_to: $ring_leds
+        range_from: !lambda return id(ring_position) + 1;
   - id: set_active_ring
     mode: restart
     then:
@@ -23,20 +39,7 @@ script:
           condition:
             lambda: 'return id(rotary).raw_state != id(ring_position);'
           then:
-          - light.addressable_set:
-              id: ring
-              red: !lambda "return id(color_active)[0];"
-              green: !lambda "return id(color_active)[1];"
-              blue: !lambda "return id(color_active)[2];"
-              range_from: 1
-              range_to: !lambda return id(ring_position);
-          - light.addressable_set:
-              id: ring
-              red: 0
-              green: 0
-              blue: 0
-              range_to: $ring_leds
-              range_from: !lambda return id(ring_position) + 1;
+          - script.execute: active_ring_helper
           - if:
               condition:
                 lambda: 'return id(rotary).raw_state > id(ring_position);'
@@ -52,20 +55,10 @@ script:
                     id: ring_position
                     value: !lambda return id(ring_position) - 1;               
           - delay: 20ms
-      - light.addressable_set:
-          id: ring
-          red: !lambda "return id(color_active)[0];"
-          green: !lambda "return id(color_active)[1];"
-          blue: !lambda "return id(color_active)[2];"
-          range_from: 1
-          range_to: !lambda return id(ring_position);
-      - light.addressable_set:
-          id: ring
-          red: 0
-          green: 0
-          blue: 0
-          range_to: $ring_leds
-          range_from: !lambda return id(ring_position) + 1;        
+          
+      # Hack, we need it to run one more time after     
+      - script.execute: active_ring_helper  
+
   - id: set_timed_out_ring
     mode: restart
     then:
@@ -78,6 +71,7 @@ script:
           blue: !lambda "return id(color_active)[2];"
           range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state;"
           range_to: !lambda return id(rotary).raw_state;
+
   - id: set_auto
     then:
       - light.addressable_set:
@@ -95,7 +89,7 @@ script:
           range_from: 22
           range_to: 24
 
-  # Helpers for enabling and disabling the LED ring at boot
+  # Helpers for enabling and disabling the LED ring
   - id: set_ring_off
     then:
       - light.addressable_set:

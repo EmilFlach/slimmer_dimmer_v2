@@ -23,6 +23,10 @@ script:
     then:
       - script.execute: set_automatic
       - lambda: "id(synchronize_encoder) = true;"
+      
+      # Hack, handles case where auto brightness is identical to current brightness
+      - script.execute: handle_short_button_press
+
       - sensor.rotary_encoder.set_value:
           id: rotary
           value: !lambda return (id(auto_brightness).state / (255 / $ring_leds));
