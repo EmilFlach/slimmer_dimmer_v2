@@ -45,6 +45,22 @@ status_led:
     number: GPIO02
     inverted: true # Normally status LED is off, inverting it gives more feedback during debugging
 
+switch:
+  - platform: restart
+    internal: true
+    id: dimmer_restart
+    name: "Dimmer restart"
+
+binary_sensor:
+  - platform: gpio
+    internal: true
+    pin: GPIO0
+    name: "Restart switch"
+    on_release:
+      then:
+        - script.execute: set_ring_on
+        - switch.turn_on: dimmer_restart
+
 script:
   - id: init_dimmer
     then:

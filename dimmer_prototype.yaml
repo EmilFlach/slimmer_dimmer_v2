@@ -6,6 +6,8 @@ substitutions:
   mqtt_light_topic: "zigbee2mqtt/living_room/set"
   auto_brightness_id: "input_number.brightness" # See the home_assistant_config_example for more info
   auto_kelvin_id: "input_number.kelvin" # See the home_assistant_config_example for more info
+
+  # All the automations that need to be enabled/disabled when using this dimmer in manual mode
   automations: '{
     "automation.entered_living_room",
     "automation.entered_dining_room",
