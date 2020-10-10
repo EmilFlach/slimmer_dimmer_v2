@@ -5,11 +5,12 @@ substitutions:
   auto_leds: "3"
 
 light:
-  - platform: fastled_clockless
-    chipset: WS2812
+  - platform: neopixelbus
+    # chipset: WS2812
     pin: GPIO13
+    method: BIT_BANG
     num_leds: $total_leds
-    rgb_order: GRB
+    # rgb_order: GRB
     name: "LED Ring"
     id: ring
     internal: true

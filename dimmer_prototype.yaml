@@ -37,7 +37,7 @@ globals:
     initial_value: "{230, 204, 128}"
   - id: color_automatic
     type: int[3]
-    initial_value: "{90, 0, 204}"
+    initial_value: "{100, 100, 160}"
 
 packages:
   base: !include common/dimmer_base.yaml
