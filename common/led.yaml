@@ -1,19 +1,33 @@
 substitutions:
   # Best not touch these
   total_leds: "24"
-  ring_leds: "21"
-  auto_leds: "3"
+  ring_leds: "23"
+  auto_leds: "1"
 
 light:
   - platform: neopixelbus
-    # chipset: WS2812
     pin: GPIO3
-    # method: BIT_BANG
     num_leds: $total_leds
-    # rgb_order: GRB
-    name: "LED Ring"
+    name: "LEDs"
+    id: leds
+    internal: true
+  - platform: partition
+    name: "Ring LEDs"
     id: ring
     internal: true
+    segments:
+      - id: leds
+        from: 0
+        to: 22
+  - platform: partition
+    name: "Auto LED"
+    id: auto_led
+    internal: true
+    segments:
+      - id: leds
+        from: 23
+        to: 24
+
 
 script:
   # Scripts that handle the states of the LED ring during usage
@@ -24,15 +38,16 @@ script:
         red: !lambda "return id(color_active)[0];"
         green: !lambda "return id(color_active)[1];"
         blue: !lambda "return id(color_active)[2];"
-        range_from: 1
-        range_to: !lambda return id(ring_position);
+        range_from: 0
+        range_to: !lambda "return id(ring_position) == 23 ? 22 : id(ring_position);"
     - light.addressable_set:
         id: ring
         red: 0
         green: 0
         blue: 0
-        range_to: $ring_leds
-        range_from: !lambda return id(ring_position) + 1;
+        range_to: 22
+        range_from: !lambda return id(ring_position);
+
   - id: set_active_ring
     mode: restart
     then:
@@ -70,25 +85,30 @@ script:
           red: !lambda "return id(color_active)[0];"
           green: !lambda "return id(color_active)[1];"
           blue: !lambda "return id(color_active)[2];"
-          range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state;"
-          range_to: !lambda return id(rotary).raw_state;
+          range_from: !lambda "return id(rotary).raw_state == 0 ? 1 : id(rotary).raw_state - 1;"
+          range_to: !lambda return id(rotary).raw_state - 1;
 
   - id: set_auto
     then:
       - light.addressable_set:
-          id: ring
+          id: auto_led
           red: !lambda "return id(is_automatic) ? id(color_automatic)[0] : 0;"
           green: !lambda "return id(is_automatic) ? id(color_automatic)[1] : 0;"
           blue: !lambda "return id(is_automatic) ? id(color_automatic)[2] : 0;"
           range_from: 0
-          range_to: 0
+          range_to: 1
+  
+  - id: set_charging
+    then:
       - light.addressable_set:
-          id: ring
-          red: !lambda "return id(is_automatic) ? id(color_automatic)[0] : 0;"
-          green: !lambda "return id(is_automatic) ? id(color_automatic)[1] : 0;"
-          blue: !lambda "return id(is_automatic) ? id(color_automatic)[2] : 0;"
-          range_from: 22
-          range_to: 24
+          id: auto_led
+          red: 0
+          green: 100%
+          blue: 0
+          range_from: 0
+          range_to: 1
+      - delay: 10s
+      - script.execute: set_auto
 
   # Helpers for enabling and disabling the LED ring
   - id: set_ring_off
@@ -99,11 +119,24 @@ script:
           green: 0
           blue: 0
           range_from: 0
-          range_to: $total_leds
+          range_to: 22
+      - light.addressable_set:
+          id: auto_led
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: 1
   - id: set_ring_on
     then:
       - light.turn_on:
           id: ring
+          red: 0
+          green: 100%
+          blue: 0
+          brightness: $brightness_leds
+      - light.turn_on:
+          id: auto_led
           red: 0
           green: 100%
           blue: 0

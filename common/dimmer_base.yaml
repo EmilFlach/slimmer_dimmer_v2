@@ -51,6 +51,14 @@ switch:
     id: dimmer_restart
     name: "Dimmer restart"
 
+  - platform: gpio
+    internal: true
+    pin: GPIO1
+    name: "Charging"
+    on_turn_on:
+      then:
+        - script.execute: set_charging
+
 binary_sensor:
   - platform: gpio
     internal: true
@@ -61,19 +69,13 @@ binary_sensor:
         - script.execute: set_ring_on
         - switch.turn_on: dimmer_restart
 
-  - platform: gpio
-    internal: true
-    pin: GPIO1
-    name: "Charging"
-
 script:
   - id: init_dimmer
     then:
-      # Hack, otherwise LED ring won't work with addressable_set
       - script.execute: set_ring_on 
-      - delay: 3s
+      - delay: 10s
       - script.execute: set_automatic
-      - script.execute: set_ring_off
+
   - id: set_automatic
     then:
       - lambda: "id(is_automatic) = true;"
