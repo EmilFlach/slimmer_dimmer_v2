@@ -7,8 +7,8 @@ substitutions:
 light:
   - platform: neopixelbus
     # chipset: WS2812
-    pin: GPIO13
-    method: BIT_BANG
+    pin: GPIO3
+    # method: BIT_BANG
     num_leds: $total_leds
     # rgb_order: GRB
     name: "LED Ring"

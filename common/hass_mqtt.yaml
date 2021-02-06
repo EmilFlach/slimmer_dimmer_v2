@@ -18,23 +18,19 @@ script:
     then:
       # Together with the mode: restart, this delay debounces the script
       - delay: 3s
-
-      # Hack, implementation might break when the API changes
-      - lambda: |-
-          // By passing the name of the script to this new Automation, it will be added to the event loop
-          Automation<> *my_send_automations = new Automation<>(send_automations);
-
-          // The list is inserted with a substitution, beautiful hack
-          const char *automations[] = ${automations};
-
-          for(const auto &automation : automations) {
-            api::HomeAssistantServiceCallAction<> *ha = new api::HomeAssistantServiceCallAction<>(api_apiserver, false);
-            ha->set_service([=]() {
-                return is_automatic->value() ? "automation.turn_on" : "automation.turn_off";
-            });
-            ha->add_data("entity_id", automation);
-            my_send_automations->add_actions({ha});
-          }
+      - if:
+          condition:
+            lambda: 'return id(is_automatic);'
+          then:
+            - homeassistant.service:
+                service: homeassistant.turn_on
+                data_template:
+                  entity_id: "$automation_group"
+          else:
+            - homeassistant.service:
+                service: homeassistant.turn_off
+                data_template:
+                  entity_id: "$automation_group"
 
   - id: send_lights
     then:
