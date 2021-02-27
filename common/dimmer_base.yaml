@@ -59,15 +59,15 @@ switch:
       then:
         - script.execute: set_charging
 
-binary_sensor:
-  - platform: gpio
-    internal: true
-    pin: GPIO0
-    name: "Restart switch"
-    on_release:
-      then:
-        - script.execute: set_ring_on
-        - switch.turn_on: dimmer_restart
+# binary_sensor:
+#   - platform: gpio
+#     internal: true
+#     pin: GPIO0
+#     name: "Restart switch"
+#     on_release:
+#       then:
+#         - script.execute: set_ring_on
+#         - switch.turn_on: dimmer_restart
 
 script:
   - id: init_dimmer

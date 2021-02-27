@@ -1,0 +1,37 @@
+substitutions:
+
+  # Don't forget to set the secrets in the secrets.yaml file
+  # Configure all of these
+  device_name: "dimmer_bedroom"
+  mqtt_light_topic: "zigbee2mqtt/bedroom/set"
+  auto_brightness_id: "input_number.bedroom_brightness" # See the home_assistant_config_example for more info
+  auto_kelvin_id: "input_number.bedroom_kelvin" # See the home_assistant_config_example for more info
+  automation_group: "group.bedroom_automations" # The group of automations to disable in manual mode
+
+  # Play around with these
+  default_brightness: "180" # range between 0 - 255
+  brightness_leds: "50%" # value too low can cause inconsistent color reproduction
+  timeout_leds: "5s" # in seconds, timeout for the led ring to show only 1 led
+
+  # Settings to use the native API instead of mqtt
+  use_native_api: "false" # Use the native API or MQTT, MQTT + Zigbee2MQTT is superior by 10 fold
+  native_light_id: "light.bedroom" # If using the native API, a home assistant entity_id must be set
+  dimming_interval: "0.25" # in seconds, native api no lower than 1, non native (mqtt) can go as low as 0.25
+
+globals:
+  # Colors used in different states (RGB)
+  - id: color_manual
+    type: int[3]
+    initial_value: "{255, 240, 170}"
+  - id: color_automatic
+    type: int[3]
+    initial_value: "{100, 100, 180}"
+
+packages:
+  base: !include common/dimmer_base.yaml
+  hass_mqtt: !include common/hass_mqtt.yaml
+  encoder: !include common/encoder.yaml
+  button: !include common/button.yaml
+  led: !include common/led.yaml
+
+
