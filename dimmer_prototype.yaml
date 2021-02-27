@@ -10,7 +10,7 @@ substitutions:
 
   # Play around with these
   default_brightness: "180" # range between 0 - 255
-  brightness_leds: "30%" # value too low can cause inconsistent color reproduction
+  brightness_leds: "50%" # value too low can cause inconsistent color reproduction
   timeout_leds: "5s" # in seconds, timeout for the led ring to show only 1 led
 
   # Settings to use the native API instead of mqtt
@@ -22,10 +22,10 @@ globals:
   # Colors used in different states (RGB)
   - id: color_manual
     type: int[3]
-    initial_value: "{255, 220, 140}"
+    initial_value: "{255, 240, 170}"
   - id: color_automatic
     type: int[3]
-    initial_value: "{140, 130, 255}"
+    initial_value: "{255, 180, 220}"
 
 packages:
   base: !include common/dimmer_base.yaml
