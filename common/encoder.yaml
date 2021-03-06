@@ -37,7 +37,6 @@ script:
         condition:
           lambda: 'return !id(synchronize_encoder);'
         then:
-          - lambda: 'id(self_inflicted) = true;'
           - script.execute: send_lights
           - script.execute: send_automations
 

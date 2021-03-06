@@ -37,7 +37,7 @@ globals:
     type: bool
     restore_value: yes
     initial_value: "false"
-  - id: self_inflicted
+  - id: ignore_manual_brightness_update
     type: bool
     restore_value: yes
     initial_value: "false"
