@@ -3,7 +3,7 @@ substitutions:
   # Don't forget to set the secrets in the secrets.yaml file
   # Configure all of these
   device_name: "dimmer_prototype"
-  mqtt_light_topic: "zigbee2mqtt/office/set"
+  mqtt_light_topic: "zigbee2mqtt/office"
   auto_brightness_id: "input_number.office_brightness" # See the home_assistant_config_example for more info
   auto_kelvin_id: "input_number.office_kelvin" # See the home_assistant_config_example for more info
   automation_group: "group.office_automations" # The group of automations to disable in manual mode

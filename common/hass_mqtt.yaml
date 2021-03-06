@@ -12,6 +12,29 @@ sensor:
     on_value:
       - script.execute: received_auto_brightness_update
 
+binary_sensor:
+  - platform: homeassistant
+    name: "Automation group"
+    id: automation_group
+    entity_id: $automation_group
+    internal: true
+    on_state:
+     - script.execute: received_automation_group_update
+
+mqtt:
+  on_json_message:
+    topic: $mqtt_light_topic
+    then:
+      - lambda: |-
+          if(x.containsKey("brightness") && x.containsKey("state")) {
+            if(strcmp(x["state"], "ON") == 0) {
+              id(manual_brightness) = x["brightness"];
+            } else {
+              id(manual_brightness) = 0;
+            }
+          }
+      - script.execute: received_manual_brightness_update
+
 script:
   - id: send_automations
     mode: restart
@@ -49,10 +72,22 @@ script:
                     return id(rotary).state;
           else:
             - mqtt.publish_json:
-                topic: !lambda return "$mqtt_light_topic";
+                topic: $mqtt_light_topic/set
                 payload: |-
                   root["brightness"] = id(rotary).state;
                   root["transition"] = $dimming_interval;
+
+  - id: received_automation_group_update
+    then:
+      - if:
+          condition:
+            lambda: 'return id(automation_group).state == true;'
+          then:
+            - script.execute: set_automatic
+            - script.execute: received_auto_brightness_update
+          else:
+            - script.execute: set_manual
+            - script.execute: received_manual_brightness_update
 
   - id: received_auto_brightness_update
     then:
@@ -70,3 +105,21 @@ script:
               value: !lambda return id(auto_brightness).state / (255 / $ring_leds);
           - delay: $dimming_interval s # Hack, because of the encoder debounce we need to wait with setting this flag false
           - lambda: "id(synchronize_encoder) = false;"
+
+  - id: received_manual_brightness_update
+    mode: restart
+    then:
+    - if:
+        condition:
+          lambda: 'return !id(is_automatic) && !id(self_inflicted);'
+        then:
+          - lambda: "id(synchronize_encoder) = true;"
+          - sensor.rotary_encoder.set_value:
+              id: rotary
+              value: !lambda return id(manual_brightness) / (255 / $ring_leds);
+          - delay: $dimming_interval s # Hack, because of the encoder debounce we need to wait with setting this flag false
+          - lambda: "id(synchronize_encoder) = false;"
+    - lambda: 'id(self_inflicted) = false;'
+
+
+
