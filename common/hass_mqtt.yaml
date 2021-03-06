@@ -1,8 +1,8 @@
 sensor:
   - platform: homeassistant
-    name: "Auto kelvin"
-    id: auto_kelvin
-    entity_id: $auto_kelvin_id
+    name: "Auto Color Temp"
+    id: auto_color_temp
+    entity_id: $auto_color_temp_id
     internal: true
   - platform: homeassistant
     name: "Auto brightness"
@@ -59,22 +59,13 @@ script:
     then:
       - if:
           condition:
-            lambda: "return $use_native_api;"
+            api.connected:
           then:
-            - homeassistant.service:
-                service: light.turn_on
-                data_template:
-                  entity_id: light.living_room
-                  brightness: "{{ rotary | int }}"
-                  transition: "$dimming_interval"
-                variables:
-                  rotary: |-
-                    return id(rotary).state;
-          else:
             - mqtt.publish_json:
                 topic: $mqtt_light_topic/set
                 payload: |-
                   root["brightness"] = id(rotary).state;
+                  root["color_temp"] = id(auto_color_temp).state;
                   root["transition"] = $dimming_interval;
 
   - id: received_automation_group_update
