@@ -18,7 +18,13 @@ script:
     then:
       - sensor.rotary_encoder.set_value:
           id: rotary
-          value: !lambda "return ((id(rotary).state > 0) ? 0 : ($default_brightness / (255 / $ring_leds)));"
+          value: !lambda |-
+            if (id(rotary).state > 0) {
+              return 0;
+            } else {
+              return $default_brightness / (255 / $ring_leds);
+            }
+
   - id: handle_long_button_press
     then:
       if:
@@ -26,12 +32,10 @@ script:
           api.connected:
         then:
           - script.execute: set_automatic
-          - lambda: "id(synchronize_encoder) = true;"
-          
-          # Hack, handles case where auto brightness is identical to current brightness
-          - script.execute: handle_short_button_press
+          - lambda: "id(encoder_sync_value) = id(auto_brightness).state;"
+          - script.execute: synchronize_encoder
 
-          - sensor.rotary_encoder.set_value:
-              id: rotary
-              value: !lambda return (id(auto_brightness).state / (255 / $ring_leds));
-          - lambda: "id(synchronize_encoder) = false;"
+          # Force sending an update
+          - delay: $dimming_interval s
+          - script.execute: send_lights
+          - script.execute: send_automations

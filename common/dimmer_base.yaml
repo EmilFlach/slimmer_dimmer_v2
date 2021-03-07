@@ -25,29 +25,10 @@ api:
 ota:
 
 globals:
-  - id: color_active
-    type: int[3]
-    initial_value: "{0, 0, 204}"
-    
   - id: is_automatic
     type: bool
     restore_value: yes
     initial_value: "false"
-  - id: synchronize_encoder
-    type: bool
-    restore_value: yes
-    initial_value: "false"
-  - id: ignore_manual_brightness_update
-    type: bool
-    restore_value: yes
-    initial_value: "false"
-
-  - id: ring_position
-    type: int
-    initial_value: "0"
-  - id: manual_brightness
-    type: int
-    initial_value: "0"
 
 status_led:
   pin:

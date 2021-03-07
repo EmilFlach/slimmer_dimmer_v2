@@ -1,3 +1,12 @@
+globals:
+  - id: encoder_sync_flag
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+  - id: encoder_sync_value
+    type: int
+    initial_value: "0"
+
 sensor:
   - platform: rotary_encoder
     internal: true
@@ -16,14 +25,13 @@ sensor:
     on_raw_value:
       - script.execute: handle_encoder_raw_value
 
-
 script:
   - id: handle_encoder_raw_value
     then:
       # if we are not syncronizing the encoder with the auto brightness, go to manual mode
       - if:
           condition:
-            lambda: 'return !id(synchronize_encoder);'
+            lambda: 'return !id(encoder_sync_flag);'
           then:
             - script.execute: set_manual
       - script.execute: set_auto
@@ -35,8 +43,23 @@ script:
       # only set the lights and automations when we are not syncronizing the encoder with the auto brightness
       if:
         condition:
-          lambda: 'return !id(synchronize_encoder);'
+          lambda: 'return !id(encoder_sync_flag);'
         then:
           - script.execute: send_lights
           - script.execute: send_automations
+
+  - id: synchronize_encoder
+    mode: restart
+    then:
+      - lambda: "id(encoder_sync_flag) = true;"
+
+      # Hack, handles case where sync value is identical to current brightness
+      - script.execute: handle_short_button_press
+      
+      - sensor.rotary_encoder.set_value:
+          id: rotary
+          value: !lambda "return id(encoder_sync_value) / (255 / $ring_leds);"
+      - delay: $dimming_interval s # Hack, because of the encoder debounce we need to wait with setting this flag false
+      
+      - lambda: "id(encoder_sync_flag) = false;"
 
