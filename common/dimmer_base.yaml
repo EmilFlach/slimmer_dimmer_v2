@@ -52,14 +52,9 @@ globals:
 status_led:
   pin:
     number: GPIO02
-    inverted: true # Normally status LED is off, inverting it gives more feedback during debugging
+    inverted: false # Normally status LED is off, inverting it gives more feedback during debugging
 
 switch:
-  - platform: restart
-    internal: true
-    id: dimmer_restart
-    name: "Dimmer restart"
-
   - platform: gpio
     internal: true
     pin: GPIO1
