@@ -2,11 +2,9 @@ globals:
   - id: color_active
     type: int[3]
     initial_value: "{0, 0, 204}"
-
   - id: ring_position
     type: int
     initial_value: "0"
-
 
 substitutions:
   # Best not touch these
@@ -37,7 +35,6 @@ light:
       - id: leds
         from: 23
         to: 24
-
 
 script:
   # Scripts that handle the states of the LED ring during usage
@@ -117,8 +114,14 @@ script:
           blue: 0
           range_from: 0
           range_to: 1
-      - delay: 10s
-      - script.execute: set_auto
+      - delay: 5s
+      - light.addressable_set:
+          id: auto_led
+          red: 0
+          green: 0
+          blue: 0
+          range_from: 0
+          range_to: 1
 
   # Helpers for enabling and disabling the LED ring
   - id: set_ring_off
