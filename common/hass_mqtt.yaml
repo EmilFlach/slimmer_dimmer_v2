@@ -20,7 +20,7 @@ sensor:
     entity_id: $auto_brightness_id
     internal: true
     on_value:
-      - script.execute: received_brightness_update
+      - script.execute: received_auto_brightness_update
 
 binary_sensor:
   - platform: homeassistant
@@ -43,7 +43,7 @@ mqtt:
               id(manual_brightness) = 0;
             }
           }
-      - script.execute: received_brightness_update
+      - script.execute: received_manual_brightness_update
 
 script:
   - id: send_automations
@@ -91,23 +91,28 @@ script:
                 lambda: 'return id(automation_group).state == true;'
               then:
                 - script.execute: set_automatic
+                - script.execute: received_auto_brightness_update
               else:
                 - script.execute: set_manual
-          - script.execute: received_brightness_update
+                - script.execute: received_manual_brightness_update
+          
 
-  - id: received_brightness_update
+  - id: received_manual_brightness_update
     then:
       if:
         condition:
-          lambda: 'return !id(ignore_updates);'
+          lambda: 'return !id(ignore_updates) && !id(is_automatic);'
         then:
-          - if:
-              condition:
-                lambda: 'return id(is_automatic);'
-              then:
-                - lambda: "id(encoder_sync_value) = id(auto_brightness).state;"
-              else:
-                - lambda: "id(encoder_sync_value) = id(manual_brightness);"
+          - lambda: "id(encoder_sync_value) = id(manual_brightness);"
+          - script.execute: synchronize_encoder
+
+  - id: received_auto_brightness_update
+    then:
+      if:
+        condition:
+          lambda: 'return !id(ignore_updates) && id(is_automatic);'
+        then:
+          - lambda: "id(encoder_sync_value) = id(auto_brightness).state;"
           - script.execute: synchronize_encoder
 
   - id: ignore_received_updates
