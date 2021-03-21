@@ -1,0 +1,33 @@
+substitutions:
+
+  # Don't forget to set the secrets in the secrets.yaml file
+  # Configure all of these
+  device_name: "dimmer_dining_room"
+  mqtt_light_topic: "zigbee2mqtt/dining_room_and_dinner_table"
+  auto_brightness_id: "input_number.dining_room_brightness" # See the home_assistant_config_example for more info
+  auto_color_temp_id: "input_number.dining_room_color_temp" # See the home_assistant_config_example for more info
+  automation_group: "group.dining_room_automations" # The group of automations to disable in manual mode
+
+  # Play around with these
+  default_brightness: "180" # range between 0 - 255
+  brightness_leds: "50%" # value too low can cause inconsistent color reproduction
+  timeout_leds: "5s" # in seconds, timeout for the led ring to show only 1 led
+  dimming_interval: "0.25" # in seconds, can go as low as 0.25
+
+globals:
+  # Colors used in different states (RGB)
+  - id: color_manual
+    type: int[3]
+    initial_value: "{255, 240, 170}"
+  - id: color_automatic
+    type: int[3]
+    initial_value: "{100, 100, 180}"
+
+packages:
+  base: !include common/dimmer_base.yaml
+  hass_mqtt: !include common/hass_mqtt.yaml
+  encoder: !include common/encoder.yaml
+  button: !include common/button.yaml
+  led: !include common/led.yaml
+
+
