@@ -18,7 +18,7 @@ There are a few requirements for using the slimmer dimmer v2, you will need to f
 4. A slimmer dimmer
 
 ## Configuring Home Assistant
-1. The first thing to configure is a place for our automatic state to be stored. For that we use Home Assistant's input numbers:
+1. The first thing to configure is a place for our automatic state to be stored. For that we use Home Assistant's [input numbers](https://www.home-assistant.io/integrations/input_number/). You can configure these through the helpers in the GUI or configure them with YAML as follows:
 
 ```
 input_number:
@@ -33,24 +33,9 @@ input_number:
     max: 500
     step: 1
 ```
-2. Now we can configure what the brightness of the automatic state should be throughout the day. I use brightness sensors, this is the automation needed to set these input numbers.
+2. Now we can configure what the brightness of the automatic state should be throughout the day. I use brightness sensors to set the input numbers. You can import this blueprint or look at the example automation at the end of the gist.
 
-```
-- alias: Bedroom brightness when dark
-  trigger:
-    platform: numeric_state
-    entity_id: sensor.0x04cf8cdf3c7cb038_illuminance_lux
-    below: 100
-  action:
-  - service: input_number.set_value
-    data:
-      entity_id: input_number.bedroom_brightness
-      value: 200
-  - service: input_number.set_value
-    data:
-      entity_id: input_number.bedroom_color_temp
-      value: 360
-```
+    [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgist.github.com%2FEmilFlach%2F26eeba2d836b143636cb39cdb0b74ec7)
 
 3. Then we can use this value of the input numbers when detecting motion:
 ```
