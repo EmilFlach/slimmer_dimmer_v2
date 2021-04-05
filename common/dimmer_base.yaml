@@ -35,18 +35,18 @@ status_led:
     number: GPIO02
     inverted: false # Normally status LED is off, inverting it gives more feedback during debugging
 
-binary_sensor:
-  - platform: gpio
-    internal: true
-    pin: 
-      number: GPIO1
-      mode: INPUT_PULLUP
-      inverted: true
-    name: "Charging"
-    # I need to improve this implementation, for now it's disabled
-    # on_press:
-    #   then:
-    #     - script.execute: set_charging
+# I need to improve this implementation, for now it's disabled
+# binary_sensor:
+#   - platform: gpio
+#     internal: true
+#     pin: 
+#       number: GPIO1
+#       mode: INPUT_PULLUP
+#       inverted: true
+#     name: "Charging"
+#     on_press:
+#       then:
+#         - script.execute: set_charging
 
 script:
   - id: init_dimmer
