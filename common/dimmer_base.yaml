@@ -43,9 +43,10 @@ binary_sensor:
       mode: INPUT_PULLUP
       inverted: true
     name: "Charging"
-    on_press:
-      then:
-        - script.execute: set_charging
+    # I need to improve this implementation, for now it's disabled
+    # on_press:
+    #   then:
+    #     - script.execute: set_charging
 
 script:
   - id: init_dimmer
