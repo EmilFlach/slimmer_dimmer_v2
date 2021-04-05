@@ -6,7 +6,7 @@ The slimmer dimmer is to be used with one single light or a group of lights. The
 
 All of these values are stored in an automatic state. This automatic state is updated throughout the day as brightness/weather/sleep sensors change states. Then when presence is detected, this state is applied to the lights of that room. 
 
-Sometimes (more often than we want), these automations might be incorrect. You quickly want to correct the lights, so you can actually use the room as intended. When using the slimmer dimmer, the automatic state will be ignored and you will gain full control of the lights again.
+Sometimes (more often than we want), these automations might be incorrect. You quickly want to correct the lights, so you can actually use the room as intended. When using the slimmer dimmer, automations will be disabled and you will gain full control of the lights again.
 
 Lastly, when you want to give control back to the automations, you long press the slimmer dimmer and the room is in automatic state again. 
 
@@ -38,22 +38,10 @@ input_number:
     [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgist.github.com%2FEmilFlach%2F26eeba2d836b143636cb39cdb0b74ec7)
 
 3. Then we can use this value of the input numbers when detecting motion:
-```
-- alias: Entered bedroom
-  trigger:
-    platform: state
-    entity_id: binary_sensor.bedroom_activity
-    to: 'on'
-  action:
-  - service: light.turn_on
-    data_template:
-      color_temp: "{{ states('input_number.bedroom_color_temp') | int }}"
-      transition: '1'
-      brightness: "{{ (states('input_number.bedroom_brightness') | int) }}"
-      entity_id: light.bedroom
-```
 
-4. Add all the automations that control the lights (such as entered bedroom) to a group. Do not add the automations that change the values of the input numbers, these automations should never interact with your lights directly and should be allowed to continue.
+    [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgist.github.com%2FEmilFlach%2F80dd0b77689ec28f5336821a6ae14ec8)
+
+4. Add all the automations that control the lights (such as entered bedroom) to a group. Sadly this can only be done with YAML. Do not add the automations that change the values of the input numbers, these automations should never interact with your lights directly and should be allowed to continue.
 ```
 bedroom_automations:
   name: Bedroom automations
