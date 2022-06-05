@@ -7,9 +7,12 @@ esphome:
     then:
       - script.execute: init_dimmer    
 
-# I use an unprotected mqtt broker ¯\_(ツ)_/¯
+# Credentials set in the secrets.yaml
 mqtt:
   broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+
 
 # Credentials set in the secrets.yaml
 wifi:

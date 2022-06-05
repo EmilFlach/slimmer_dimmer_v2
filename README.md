@@ -43,16 +43,16 @@ input_number:
 
 4. Add all the automations that control the lights (such as entered bedroom) to a group. Sadly this can only be done with YAML. Do not add the automations that change the values of the input numbers, these automations should never interact with your lights directly and should be allowed to continue.
 ```
-bedroom_automations:
-  name: Bedroom automations
-  entities:
-    - automation.entered_bedroom
-    - automation.left_bedroom
-    - automation.closed_bedroom_window
-    - automation.opened_bedroom_window
-    - automation.wake_up_lights
-    - automation.all_off_when_sleeping
-    - automation.bedroom_flux_changed
+  bedroom_automations:
+    name: Bedroom automations
+    entities:
+      - automation.entered_bedroom
+      - automation.left_bedroom
+      - automation.closed_bedroom_window
+      - automation.opened_bedroom_window
+      - automation.wake_up_lights
+      - automation.all_off_when_sleeping
+      - automation.bedroom_flux_changed
 ```
 
 ## Configure the slimmer dimmer
